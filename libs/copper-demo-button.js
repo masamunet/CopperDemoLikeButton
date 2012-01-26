@@ -14,38 +14,57 @@ var jp_utweb_jQueryPlugins = jp_utweb_jQueryPlugins || {};
     }
     namespace.copperDemoButtons = new Function();
 
-    var FILE_NAME = "copper-demo-button.js";
+    var FILE_NAME = 'copper-demo-button.js';
     //メインクラス
     function CopperDemoButton(){
-        this.thread = [];
+        this.thread_ = [];
         this.init_ = function(){
-            this.thread = [];
-            this._addThread();
+            this.thread_ = [];
+            this.addThread_();
         };
+        //スクリプトの呼び出しを探してスレッドとして登録。
+        this.addThread_ = function(){
+            var thread = this.thread_;
+            var setParameter = this.setParameter_;
+            $(document).find('script').each(function(){
+                //scriptタグのsrcがこのファイルじゃない場合は処理をしない
+                var target = $(this);
+                var src = target.attr('src');
+                if(src === undefined){
+                    return;
+                }
+                if(src.indexOf(FILE_NAME) < 0){
+                    return;
+                }
+                //パラメーターをスレッドとして登録。
+                var params = setParameter(src);
+                thread.push(params);
+            });
+        };
+        //呼び出し時にパラメーターが指定されているか調べる。指定されていれば{key:value}の形にして返す。
+        this.setParameter_ = function(string){
+            var r = {};
+            if(string.indexOf('?') < 0){
+                return r;
+            }
+            var params = string.split('?')[1];
+            var param = params.split('&');
+            var l = param.length;
+            for(var i = 0; i < l; i++){
+                var target = param[i];
+                if(target.indexOf('=') < 0){
+                    break;
+                }
+                var p = target.split('=');
+                r[p[0]] = p[1];
+            }
+            return r;
+        }
         this.init_();
     }
     CopperDemoButton.prototype = {
-        //スクリプトの呼び出しを探してスレッドとして登録。
-        _addThread:function(){
-            var thread = this.thread;
-            var allReplace = true;
-            $(document).find('script').each(function(){
-                if($(this).attr('src') === undefined){
-                    return;
-                }
-                if($(this).attr('src').indexOf(FILE_NAME) < 0){
-                    return;
-                }
-                thread.push(this);
-                var targetId = $(this).attr('targetId');
-                if(targetId === undefined){
-                    return;
-                }
-                if(targetId !== "" && targetId !== "0" && targetId !== 0 && targetId.length > 0){
-                    allReplace = false;
-                }
-            });
-            console.log(thread)
+        run:function(){
+
         }
     };
     //リプレーサーの抽象クラス
@@ -55,7 +74,7 @@ var jp_utweb_jQueryPlugins = jp_utweb_jQueryPlugins || {};
             //あとで実装
         },
         getTarget:function(){
-            throw new Error("AbstractReplacerState.getTarget() is an Abstract method and must be overridden.");
+            throw new Error('AbstractReplacerState.getTarget() is an Abstract method and must be overridden.');
         }
     };
     //全て変換
