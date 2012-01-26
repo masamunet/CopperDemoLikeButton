@@ -8,9 +8,12 @@
 ;
 var jp_utweb_jQueryPlugins = jp_utweb_jQueryPlugins || {};
 (function($, namespace){
+    //内部で子スレッドを作成するのでメインスレッドは一本に絞る。
     if(!!namespace.copperDemoButtons){
         return;
     }
+    namespace.copperDemoButtons = new Function();
+
     var FILE_NAME = "copper-demo-button.js";
     //メインクラス
     function CopperDemoButton(){
@@ -27,16 +30,22 @@ var jp_utweb_jQueryPlugins = jp_utweb_jQueryPlugins || {};
             var thread = this.thread;
             var allReplace = true;
             $(document).find('script').each(function(){
-                if($(this).attr('src').indexOf(FILE_NAME) >= 0){
-                    thread.push(this);
-                    var targetId = $(this).attr('targetId');
-                    if(targetId !== undefined){
-                        if(targetId !== "" && targetId !== "0" && targetId !== 0 && targetId.length > 0){
-                            allReplace = false;
-                        }
-                    }
+                if($(this).attr('src') === undefined){
+                    return;
+                }
+                if($(this).attr('src').indexOf(FILE_NAME) < 0){
+                    return;
+                }
+                thread.push(this);
+                var targetId = $(this).attr('targetId');
+                if(targetId === undefined){
+                    return;
+                }
+                if(targetId !== "" && targetId !== "0" && targetId !== 0 && targetId.length > 0){
+                    allReplace = false;
                 }
             });
+            console.log(thread)
         }
     };
     //リプレーサーの抽象クラス
@@ -112,5 +121,7 @@ var jp_utweb_jQueryPlugins = jp_utweb_jQueryPlugins || {};
         return c;
     };
     //
-    namespace.copperDemoButtons = new CopperDemoButton();
+    $(function(){
+        namespace.copperDemoButtons = new CopperDemoButton();
+    });
 })(jQuery, jp_utweb_jQueryPlugins);
